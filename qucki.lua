@@ -1,11 +1,9 @@
 --[[
-    NHΛT KHΛNH SAE
-    Transparent GUI - Delta
-    - Ảnh nền rõ, không viền ngoài
-    - Bỏ chữ trên hai nút chức năng
-    - Công tắc trong suốt để thấy ảnh nền
-    - Tiêu đề tím
-    - Avatar tròn chỉ có ảnh, kéo được
+    NHAT KHANH SAE
+    Transparent Switches - Delta
+    OFF: trong suốt hoàn toàn
+    ON: nền xanh lá
+    Núm gạt: màu trắng
 ]]
 
 local Players = game:GetService("Players")
@@ -19,7 +17,6 @@ local IMAGE_URL = "https://raw.githubusercontent.com/khanhdep41-tech/Nhat-Khanh-
 local FOLDER = "NhatKhanhHub"
 local IMAGE_PATH = FOLDER .. "/IMG_9880.jpeg"
 
--- Xóa GUI cũ
 pcall(function()
     if CoreGui:FindFirstChild("NhatKhanhHub") then
         CoreGui.NhatKhanhHub:Destroy()
@@ -33,7 +30,6 @@ pcall(function()
     end
 end)
 
--- Tải ảnh nền
 local function getImageAsset()
     if type(writefile) ~= "function" then
         return nil
@@ -54,22 +50,22 @@ local function getImageAsset()
 
     local data
 
-    if type(isfile) == "function"
-        and type(readfile) == "function" then
-        pcall(function()
-            if isfile(IMAGE_PATH) then
-                data = readfile(IMAGE_PATH)
-            end
-        end)
-    end
+    pcall(function()
+        if type(isfile) == "function"
+            and type(readfile) == "function"
+            and isfile(IMAGE_PATH) then
+            data = readfile(IMAGE_PATH)
+        end
+    end)
 
     if not data or #data == 0 then
         local ok, result = pcall(function()
             return game:HttpGet(IMAGE_URL)
         end)
 
-        if not ok or type(result) ~= "string" or #result == 0 then
-            warn("[NHAT KHANH SAE] Không tải được ảnh nền.")
+        if not ok or type(result) ~= "string"
+            or #result == 0 then
+            warn("[NHAT KHANH SAE] Không tải được ảnh.")
             return nil
         end
 
@@ -89,14 +85,15 @@ local imageAsset = getImageAsset()
 
 local function create(className, properties, parent)
     local obj = Instance.new(className)
+
     for key, value in pairs(properties) do
         obj[key] = value
     end
+
     obj.Parent = parent
     return obj
 end
 
--- ScreenGui
 local gui = Instance.new("ScreenGui")
 gui.Name = "NhatKhanhHub"
 gui.ResetOnSpawn = false
@@ -111,7 +108,6 @@ if not parentOK or not gui.Parent then
     gui.Parent = player:WaitForChild("PlayerGui")
 end
 
--- GUI chính
 local panel = create("Frame", {
     Name = "MainPanel",
     Size = UDim2.fromOffset(280, 164),
@@ -128,7 +124,6 @@ create("UICorner", {
     CornerRadius = UDim.new(0, 12),
 }, panel)
 
--- Ảnh nền hiển thị rõ
 if imageAsset then
     create("ImageLabel", {
         Name = "BackgroundImage",
@@ -143,7 +138,6 @@ if imageAsset then
     }, panel)
 end
 
--- Lớp phủ trong suốt
 create("Frame", {
     Name = "ImageShade",
     Size = UDim2.fromScale(1, 1),
@@ -152,7 +146,6 @@ create("Frame", {
     ZIndex = 2,
 }, panel)
 
--- Thanh tiêu đề
 local header = create("Frame", {
     Name = "Header",
     Size = UDim2.new(1, 0, 0, 42),
@@ -177,7 +170,6 @@ create("TextLabel", {
     ZIndex = 4,
 }, header)
 
--- Nút đóng
 local close = create("TextButton", {
     Name = "Close",
     Size = UDim2.fromOffset(26, 26),
@@ -191,7 +183,6 @@ local close = create("TextButton", {
     ZIndex = 5,
 }, header)
 
--- Trạng thái ẩn
 create("TextLabel", {
     Name = "Status",
     Size = UDim2.new(1, -20, 0, 15),
@@ -202,7 +193,7 @@ create("TextLabel", {
     ZIndex = 4,
 }, panel)
 
--- Tạo hàng công tắc: không có chữ, nền công tắc bán trong suốt
+-- Công tắc: OFF trong suốt, ON xanh lá
 local function createToggle(y)
     local row = create("Frame", {
         Name = "ToggleRow",
@@ -217,8 +208,8 @@ local function createToggle(y)
         Name = "Switch",
         Size = UDim2.fromOffset(49, 25),
         Position = UDim2.new(1, -59, 0.5, -12),
-        BackgroundColor3 = Color3.fromRGB(70, 70, 76),
-        BackgroundTransparency = 0.45,
+        BackgroundColor3 = Color3.fromRGB(35, 220, 105),
+        BackgroundTransparency = 1,
         Text = "",
         BorderSizePixel = 0,
         AutoButtonColor = false,
@@ -244,15 +235,18 @@ local function createToggle(y)
     }, knob)
 
     local function render(enabled)
-        switch.BackgroundColor3 = enabled
-            and Color3.fromRGB(35, 220, 105)
-            or Color3.fromRGB(70, 70, 76)
-        switch.BackgroundTransparency = enabled and 0.25 or 0.45
-        knob.Position = enabled
-            and UDim2.new(1, -22, 0, 3)
-            or UDim2.fromOffset(3, 3)
+        if enabled then
+            switch.BackgroundColor3 =
+                Color3.fromRGB(35, 220, 105)
+            switch.BackgroundTransparency = 0
+            knob.Position = UDim2.new(1, -22, 0, 3)
+        else
+            switch.BackgroundTransparency = 1
+            knob.Position = UDim2.fromOffset(3, 3)
+        end
     end
 
+    render(false)
     return switch, render
 end
 
@@ -266,7 +260,7 @@ local function getRuntime()
     return env.__SenaV4EggRuntime
 end
 
--- Tự động lấy trứng
+-- Nút tự động lấy trứng
 autoBtn.Activated:Connect(function()
     local rt = getRuntime()
 
@@ -276,6 +270,7 @@ autoBtn.Activated:Connect(function()
     end
 
     local nextValue = not autoOn
+
     local success, err = pcall(function()
         rt:setEnabled(nextValue)
 
@@ -292,7 +287,7 @@ autoBtn.Activated:Connect(function()
     end
 end)
 
--- Săn trứng từ script khác
+-- Nút săn trứng
 snipeBtn.Activated:Connect(function()
     local rt = getRuntime()
 
@@ -302,6 +297,7 @@ snipeBtn.Activated:Connect(function()
     end
 
     local nextValue = not snipeOn
+
     local success, err = pcall(function()
         if type(rt._reconcileRunningState) == "function" then
             rt:_reconcileRunningState()
@@ -356,6 +352,7 @@ UserInputService.InputChanged:Connect(function(input)
         or input.UserInputType == Enum.UserInputType.Touch
     ) then
         local delta = input.Position - dragStart
+
         panel.Position = UDim2.new(
             startPosition.X.Scale,
             startPosition.X.Offset + delta.X,
@@ -365,7 +362,7 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- Avatar tròn
+-- Avatar nổi
 local avatar = create("ImageButton", {
     Name = "FloatingAvatar",
     Size = UDim2.fromOffset(50, 50),
@@ -384,19 +381,20 @@ create("UICorner", {
     CornerRadius = UDim.new(1, 0),
 }, avatar)
 
--- Đóng GUI và hiện avatar
 close.Activated:Connect(function()
     avatar.Position = UDim2.new(
         panel.Position.X.Scale,
-        panel.Position.X.Offset + math.floor(panel.AbsoluteSize.X / 2) - 25,
+        panel.Position.X.Offset
+            + math.floor(panel.AbsoluteSize.X / 2) - 25,
         panel.Position.Y.Scale,
-        panel.Position.Y.Offset + math.floor(panel.AbsoluteSize.Y / 2) - 25
+        panel.Position.Y.Offset
+            + math.floor(panel.AbsoluteSize.Y / 2) - 25
     )
+
     panel.Visible = false
     avatar.Visible = true
 end)
 
--- Kéo avatar
 local avatarDragging = false
 local avatarDragStart
 local avatarStartPosition
@@ -443,6 +441,7 @@ avatar.Activated:Connect(function()
         avatarMoved = false
         return
     end
+
     panel.Visible = true
     avatar.Visible = false
 end)
